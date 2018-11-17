@@ -33,20 +33,13 @@ async def do_ping_rule(message, client):
             .format(shlex.quote(remaining_str))
         await client.send_message(message.channel, response)
     else:
-        job = 'ping {}'.format(shlex.quote(remaining_str))
+        job = 'ping -c 5 {}'.format(shlex.quote(remaining_str))
         process = subprocess.Popen(
-            job, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            job, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
         )
-        while True:
-            output = process.stdout.readline()
-            if output == '' and process.poll() is not None:
-                break
-            if output:
-                print(output)
-                output_str = output.decode('utf-8')
-                if not is_empty_message(output_str):
-                    await client.send_message(message.channel, output_str)
-        process.poll()
+        process.wait()
+        output = process.communicate()[0]
+        await client.send_message(message.channel, output)
 
     return True
 
